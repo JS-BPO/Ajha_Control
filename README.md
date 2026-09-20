@@ -1,50 +1,45 @@
 # AJHA Control
 
 App da família para receitas, cardápio, estoque e lista de mercado.
-Funciona no celular como aplicativo (PWA), offline, e sincroniza entre os
-aparelhos da casa pelo Firebase, com PIN de 4 dígitos.
+Instalado no celular como aplicativo (PWA), funciona offline e sincroniza
+entre os aparelhos da casa pelo Firebase, com PIN de 4 dígitos.
+
+No ar em: https://js-bpo.github.io/Ajha_Control/
 
 ---
 
-## 1. Firebase
+## Como está montado
 
-**a) Criar o projeto**
-Console do Firebase › Adicionar projeto. Pode recusar o Google Analytics.
-
-**b) Registrar o app da Web**
-Na visão geral do projeto, clique no ícone `</>` e dê um apelido qualquer.
-Ele mostra um bloco `firebaseConfig`. Copie os 4 valores.
-
-**c) Colar no `index.html`**
-Logo no começo do `<script>` tem este bloco. Preencha e salve:
-
-```js
-const FIREBASE = {
-  apiKey:     "AIza...",
-  authDomain: "seu-projeto.firebaseapp.com",
-  projectId:  "seu-projeto",
-  appId:      "1:000:web:abc"
-};
-```
-
-Esses dados são públicos por natureza — quem protege o banco são as regras
-do passo (e), não o sigilo deles.
-
-**d) Criar o PIN**
-Authentication › Sign-in method › ative **E-mail/senha**.
-Depois Authentication › Users › **Add user**:
-
-| campo | valor |
+| arquivo | o que é |
 |---|---|
-| E-mail | `familia@ajha.app` |
-| Senha | `ajha-` + o PIN. Ex.: PIN **1234** → senha `ajha-1234` |
+| `index.html` | o app inteiro — é aqui que fica o bloco `FIREBASE` |
+| `manifest.json` | nome, cores e ícones do app instalado |
+| `sw.js` | funcionamento offline (service worker) |
+| `icons/` | ícones. O `-maskable-b` é o que o Android recorta em círculo |
+| `.nojekyll` | impede o GitHub Pages de processar os arquivos |
 
-Esse e-mail não precisa existir de verdade — é só o identificador da conta.
-Na tela de entrada a família digita **só os 4 dígitos**; o app completa o resto.
+O app não tem servidor próprio: o GitHub Pages entrega os arquivos e o
+Firebase guarda os dados. Não há nada para manter rodando.
 
-**e) Travar o banco**
-Firestore Database › Criar banco de dados › modo de produção.
-Depois na aba **Regras**, apague tudo e cole:
+---
+
+## Firebase
+
+**Conta da família.** Não existe cadastro nem login por e-mail. O app usa uma
+conta única, criada à mão no console:
+
+- E-mail: `familia@ajha.app` (não é um e-mail de verdade, só o nome da conta)
+- Senha: `ajha-` + o PIN de 4 dígitos
+
+Na tela de entrada a família digita só os 4 dígitos; o app completa o `ajha-`
+sozinho. O Firebase exige senha de 6 caracteres ou mais — é por isso que o
+prefixo existe.
+
+**Trocar o PIN:** dentro do app, ⚙ Ajustes › Trocar o PIN. Todos os celulares
+precisam entrar de novo depois.
+
+**Regras do Firestore** (Firestore Database › Regras). É isto que impede
+qualquer pessoa de ler ou gravar no banco:
 
 ```
 rules_version = '2';
@@ -58,62 +53,77 @@ service cloud.firestore {
 }
 ```
 
-Publique. Sem isso, o banco fica aberto para qualquer um.
+Se mudar o e-mail da conta, ele precisa ser trocado em três lugares: aqui,
+no usuário do Authentication e na constante `CONTA_FAMILIA` do `index.html`.
+
+**Domínio autorizado.** `js-bpo.github.io` precisa estar em
+Authentication › Settings › Domínios autorizados. Sem isso o PIN é recusado
+e a mensagem de erro não explica o motivo.
+
+**SDK do Firebase.** Carregado de `https://www.gstatic.com/firebasejs/10.12.2/`,
+que é a fonte oficial do Google. Não use o jsDelivr: o caminho
+`/npm/firebase@10.12.2/compat/` não existe e devolve 404.
 
 ---
 
-## 2. GitHub Pages
+## Publicar uma alteração
 
-1. Crie um repositório (pode ser público — não há segredo aqui).
-2. Suba estes arquivos na **raiz** do repositório.
-3. Settings › Pages › Source: **Deploy from a branch** › branch `main`, pasta `/ (root)`.
-4. Em um ou dois minutos sai o endereço: `https://SEU-USUARIO.github.io/SEU-REPO/`
+1. Edite o arquivo pelo GitHub (ícone de lápis) ou suba a versão nova.
+2. **Abra `sw.js` e aumente o número da versão** (`ajha-v5` → `ajha-v6`).
+3. Espere cerca de um minuto para o GitHub Pages reconstruir.
 
-**Passo que falta em 9 de 10 tutoriais:** volte ao Firebase em
-Authentication › Settings › **Domínios autorizados** e adicione
-`SEU-USUARIO.github.io`. Sem isso o PIN nunca passa.
+O passo 2 não é opcional. Sem trocar o número, os celulares que já instalaram
+continuam abrindo a versão guardada em cache, e parece que a alteração não
+funcionou.
 
----
+### Se a alteração for nos ícones
 
-## 3. Instalar no celular
+Aí não basta trocar a versão do `sw.js`: **troque o nome dos arquivos**
+(`icon-192-b.png` → `icon-192-c.png`) e atualize os nomes no `manifest.json`
+e na lista `CASCA` do `sw.js`.
 
-Abra o endereço do GitHub Pages no celular.
+Três caches guardam esses arquivos ao mesmo tempo — o do GitHub, o do Chrome
+e o do Android — e nenhum deles é limpo por reinstalar o app. Endereço novo é
+a única forma garantida.
 
-- **Android / Chrome** — aparece "Instalar app". Se não aparecer: menu ⋮ › Adicionar à tela inicial.
-- **iPhone / Safari** — botão Compartilhar › Adicionar à Tela de Início.
-  Precisa ser o Safari; no Chrome do iPhone não instala.
+Depois, para ver o ícone novo na tela inicial, é preciso **desinstalar e
+instalar de novo**: o Android grava o ícone no momento da instalação.
 
-Depois de instalado abre em tela cheia e funciona sem internet.
-Só a sincronização precisa de rede.
+### Conferir o que está no ar
 
----
+O navegador pode te mostrar uma versão antiga sem avisar. Para ver o que
+realmente está no servidor, acrescente qualquer coisa no fim do endereço:
 
-## Ao publicar uma alteração
-
-Abra `sw.js` e troque a versão:
-
-```js
-const VERSAO = "ajha-v1";   // vire v2, v3, v4...
+```
+https://js-bpo.github.io/Ajha_Control/manifest.json?x=1
 ```
 
-Sem isso os celulares continuam mostrando a versão antiga guardada em cache.
+Endereço diferente, nenhum cache no meio.
 
 ---
 
-## Arquivos
+## Instalar no celular
 
-| arquivo | o que é |
-|---|---|
-| `index.html` | o app inteiro — é aqui que fica o bloco `FIREBASE` |
-| `manifest.json` | nome, cores e ícones do app instalado |
-| `sw.js` | funcionamento offline (service worker) |
-| `icons/` | ícones. `icon-512-maskable.png` é o que o Android recorta em círculo |
-| `.nojekyll` | impede o GitHub Pages de processar os arquivos |
+- **Android / Chrome** — aparece "Instalar app". Se não aparecer: menu ⋮ ›
+  Adicionar à tela inicial.
+- **iPhone / Safari** — Compartilhar › Adicionar à Tela de Início. Precisa ser
+  o Safari; no Chrome do iPhone não instala.
 
-## Observações
+---
 
-- **Trocar o PIN depois:** dentro do app, ⚙ Ajustes › Trocar o PIN.
-- **Sem internet:** o app abre e funciona; as mudanças sobem quando a rede voltar.
+## Detalhes do dia a dia
+
+- **Sem internet:** o app abre e funciona normalmente. As alterações sobem
+  quando a rede voltar.
 - **Imprimir no iPhone:** app instalado no iOS não abre a caixa de impressão.
-  Use o botão **Enviar** (manda a lista pelo WhatsApp) ou abra o mesmo
-  endereço no Safari normal para imprimir.
+  Use o botão **Enviar**, que manda a lista pelo WhatsApp já agrupada por
+  corredor do mercado — ou abra o mesmo endereço no Safari comum para imprimir.
+- **Catálogo de ingredientes:** receita e estoque se ligam pelo código do
+  ingrediente, não pelo texto digitado. Por isso "arroz" e "Arroz branco" são
+  a mesma coisa para o app, e a lista de compras bate com o estoque. Ao
+  cadastrar um ingrediente parecido com um que já existe, o app oferece ligar
+  os dois como apelido — vale aceitar.
+- **Botão "Cozinhei":** baixa do estoque o que a refeição consumiu, e tira
+  essa refeição da lista da semana.
+- **Meta do estoque:** é quanto você quer manter em casa. É dela que sai o
+  rancho do mês.
