@@ -2,8 +2,8 @@
    >>> Troque VERSAO a cada vez que publicar uma mudança. <<< */
 const VERSAO = "ajha-v4";
 const CASCA = ["./", "./index.html", "./manifest.json",
-  "./icons/icon-192.png", "./icons/icon-512.png",
-  "./icons/icon-512-maskable.png", "./icons/icon-180.png"];
+  "./icons/icon-192-b.png", "./icons/icon-512-b.png",
+  "./icons/icon-maskable-b.png", "./icons/icon-180-b.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSAO).then(c => c.addAll(CASCA)).then(() => self.skipWaiting()));
