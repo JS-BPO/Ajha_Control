@@ -1,6 +1,6 @@
 /* AJHA Control — service worker
    >>> Troque VERSAO a cada vez que publicar uma mudança. <<< */
-const VERSAO = "ajha-v5";
+const VERSAO = "ajha-v6";
 const CASCA = ["./", "./index.html", "./manifest.json",
   "./icons/icon-192-b.png", "./icons/icon-512-b.png",
   "./icons/icon-maskable-b.png", "./icons/icon-180-b.png"];
