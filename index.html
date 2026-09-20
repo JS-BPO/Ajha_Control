@@ -1494,7 +1494,7 @@ async function conectarFirebase(pin){
   const c = leConfigFb();
   if (!c.apiKey || !c.projectId) throw new Error("Falta preencher o Firebase no index.html.");
   if (!window.firebase){
-    const base = "https://cdn.jsdelivr.net/npm/firebase@10.12.2/compat/";
+    const base = "https://www.gstatic.com/firebasejs/10.12.2/";
     await carregaScript(base + "firebase-app-compat.js");
     await carregaScript(base + "firebase-auth-compat.js");
     await carregaScript(base + "firebase-firestore-compat.js");
